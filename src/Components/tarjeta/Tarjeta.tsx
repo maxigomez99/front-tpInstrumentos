@@ -1,7 +1,7 @@
 // Tarjeta.tsx
 import React from 'react';
 import { Card, CardMedia, Typography, Box } from '@mui/material';
-
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 interface TarjetaProps {
     altText: string;
     src: string;
@@ -48,7 +48,7 @@ const Tarjeta: React.FC<TarjetaProps> = ({
                     width: { xs: '100%', sm: 100 },
                 }}
             />
-            <Box sx={{ ml: 2 ,margin: '50px'}}>
+            <Box sx={{ ml: 2, margin: '50px' }}>
                 <Typography variant="body2" color="text.secondary">
                     {instrumento}
                 </Typography>
@@ -57,12 +57,19 @@ const Tarjeta: React.FC<TarjetaProps> = ({
                     Precio: {precio}
                 </Typography>
                 <Typography variant="body1" style={{ color: costoEnvio === 'G' ? 'green' : 'red' }}>
-                    Costo de envío: {costoEnvio === 'G' ? 'Envío gratis' : costoEnvio}
+                    {costoEnvio === 'G' ?
+                        <Box component="span" display="flex" alignItems="center">
+                            <LocalShippingIcon style={{ marginRight: '10px' }} />
+                            <span>Envío gratis a todo el país</span>
+                        </Box>
+                        :
+                        `Costo de envío: $${costoEnvio}`
+                    }
                 </Typography>
                 <Typography variant="body1">
                     Cantidad vendida: {cantidadVendida}
                 </Typography>
-                
+
             </Box>
         </Card>
     );
