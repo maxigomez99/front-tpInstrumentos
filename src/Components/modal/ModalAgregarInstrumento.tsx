@@ -31,31 +31,33 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
-  getCategoriasFetch().then(setCategorias);
+    console.log('Instrumento prop:', instrumento); // Añade este log
 
-  if (instrumento) {
-    let envioValue = instrumento.envio;
-    if (envioValue === 'Gratis') {
-      envioValue = 'G';
-    } else if (envioValue.charAt(0) === '$') {
-      envioValue = Number(envioValue.slice(1));
+    getCategoriasFetch().then(setCategorias);
+
+    if (instrumento) {
+      let envioValue = instrumento.envio;
+      if (envioValue === 'Gratis') {
+        envioValue = 'G';
+      } else if (envioValue.charAt(0) === '$') {
+        envioValue = Number(envioValue.slice(1));
+      }
+
+      form.setFieldsValue({
+        ...instrumento,
+        imagenes: instrumento.imagenes?.map((url: string, index: number) => ({
+          uid: index,
+          name: `imagen${index}`,
+          status: 'done',
+          url,
+        })),
+        envio: envioValue,
+        categoria: instrumento.categoria.id,
+      });
+    } else {
+      form.resetFields();
     }
-
-    form.setFieldsValue({
-      ...instrumento,
-      imagenes: instrumento.imagenes?.map((url: string, index: number) => ({
-        uid: index,
-        name: `imagen${index}`,
-        status: 'done',
-        url,
-      })),
-      envio: envioValue,
-      categoria: instrumento.categoria.id,
-    });
-  } else {
-    form.resetFields();
-  }
-}, [instrumento, form]);
+  }, [instrumento, form]);
 
   const handleOk = () => {
     form.submit();
@@ -64,11 +66,18 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
   const onFinish = async (values: any) => {
     try {
       const image = values.imagenes?.[0]?.originFileObj;
-      if (instrumento) {
-        // If an instrument is provided, we are editing
-        await saveInstrumento({ ...values, costoEnvio: values.envio, id: instrumento.id }, image);
+      const idInstrumento = values.key; // Obtener el id directamente de los valores del formulario
+
+      // Imprimir los valores antes de enviar
+      console.log('Valores del formulario:', values);
+      console.log('Imagen seleccionada:', image);
+      console.log('ID del instrumento:', idInstrumento);
+
+      if (idInstrumento > 0) {
+        // Si hay un instrumento, estamos editando
+        await saveInstrumento({ ...values, costoEnvio: values.envio, id: idInstrumento }, image);
       } else {
-        // If no instrument is provided, we are creating
+        // Si no hay un instrumento, estamos creando
         await saveInstrumento({ ...values, costoEnvio: values.envio }, image);
       }
       onCancel();
@@ -76,6 +85,7 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
       console.error('Failed to save instrument:', error);
     }
   };
+
 
   const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo);
@@ -104,6 +114,16 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
       >
         <Row gutter={16}>
           <Col span={12}>
+            {instrumento && (
+              <Form.Item
+                label="id"
+                name="key"
+                rules={[{ required: true, message: 'Por favor ingrese el nombre del instrumento!' }]}
+                hidden
+              >
+                <Input />
+              </Form.Item>
+            )}
             <Form.Item
               label="Instrumento"
               name="instrumento"
@@ -187,23 +207,58 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
           </Select>
         </Form.Item>
 
-        <Form.Item
-          name="imagenes"
-          label="Imágenes"
-          valuePropName="fileList"
-          getValueFromEvent={normFile}
-        >
-          <Upload
-            listType="picture-card"
-            beforeUpload={() => false}
-          >
-            <div>
-              <PlusOutlined />
-              <div style={{ marginTop: 8 }}>Upload</div>
-            </div>
-          </Upload>
-        </Form.Item>
-
+       {instrumento ? (
+  <Form.Item label="Imagen">
+    <Upload
+      name="imagen"
+      listType="picture-card"
+      className="avatar-uploader"
+      showUploadList={false}
+      beforeUpload={(file) => {
+        const reader = new FileReader();
+        reader.onload = (e) =>
+          form.setFieldsValue({ imagenPreview: e.target?.result });
+        reader.readAsDataURL(file);
+        // Handle file upload here
+        // For example, you can send a request to your server to upload the file
+        // You can use the fetch API, axios, or any other library to send the request
+        // Return true to indicate that the upload was successful
+        return true;
+      }}
+    >
+      {form.getFieldValue("imagenPreview") ? (
+        <img
+          src={form.getFieldValue("imagenPreview")}
+          alt="avatar"
+          style={{ width: "100%" }}
+        />
+      ) : (
+        <img
+          src={`http://localhost:8080/img/${instrumento.imagen}`}
+          alt="avatar"
+          style={{ width: "100%" }}
+        />
+      )}
+    </Upload>
+  </Form.Item>
+) : (
+  <Form.Item
+    name="imagenes"
+    label="Imágenes"
+    valuePropName="fileList"
+    getValueFromEvent={normFile}
+  >
+    <Upload
+      listType="picture-card"
+      beforeUpload={() => false}
+    >
+      <div>
+        <PlusOutlined />
+        <div style={{ marginTop: 8 }}>Upload</div>
+      </div>
+    </Upload>
+  </Form.Item>
+)}
         <Form.Item>
           <Button type="primary" htmlType="submit">
             {instrumento ? "Guardar Cambios" : "Agregar Instrumento"}
