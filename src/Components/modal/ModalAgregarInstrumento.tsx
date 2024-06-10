@@ -31,23 +31,31 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   useEffect(() => {
-    getCategoriasFetch().then(setCategorias);
+  getCategoriasFetch().then(setCategorias);
 
-    if (instrumento) {
-      form.setFieldsValue({
-        ...instrumento,
-        imagenes: instrumento.imagenes?.map((url: string, index: number) => ({
-          uid: index,
-          name: `imagen${index}`,
-          status: 'done',
-          url,
-        })),
-        categoria: instrumento.categoria, // Asegúrate de establecer el valor de la categoría aquí
-      });
-    } else {
-      form.resetFields();
+  if (instrumento) {
+    let envioValue = instrumento.envio;
+    if (envioValue === 'Gratis') {
+      envioValue = 'G';
+    } else if (envioValue.charAt(0) === '$') {
+      envioValue = Number(envioValue.slice(1));
     }
-  }, [instrumento, form]);
+
+    form.setFieldsValue({
+      ...instrumento,
+      imagenes: instrumento.imagenes?.map((url: string, index: number) => ({
+        uid: index,
+        name: `imagen${index}`,
+        status: 'done',
+        url,
+      })),
+      envio: envioValue,
+      categoria: instrumento.categoria.id,
+    });
+  } else {
+    form.resetFields();
+  }
+}, [instrumento, form]);
 
   const handleOk = () => {
     form.submit();
@@ -56,7 +64,13 @@ const ModalAgregarInstrumento: React.FC<Props> = ({ visible, onCancel, instrumen
   const onFinish = async (values: any) => {
     try {
       const image = values.imagenes?.[0]?.originFileObj;
-      await saveInstrumento({ ...values, costoEnvio: values.envio, id: instrumento?.id }, image); // Ensure this matches your data model
+      if (instrumento) {
+        // If an instrument is provided, we are editing
+        await saveInstrumento({ ...values, costoEnvio: values.envio, id: instrumento.id }, image);
+      } else {
+        // If no instrument is provided, we are creating
+        await saveInstrumento({ ...values, costoEnvio: values.envio }, image);
+      }
       onCancel();
     } catch (error) {
       console.error('Failed to save instrument:', error);
