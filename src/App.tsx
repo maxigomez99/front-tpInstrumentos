@@ -1,24 +1,15 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import Menu from './Components/menu/Menu';
+import Rutas from './routes/Ruter';
 
-import Instrumento from './pages/Instrumentos';
-
-
-function App() {
-  
-
+const App: React.FC = () => {
   return (
     <Router>
-   
-         
-           
-            <Instrumento />
-            
-         
-   
+      <Menu />
+      <Rutas />
     </Router>
-    
-  
-  )
-}
+  );
+};
 
-export default App
+export default App;

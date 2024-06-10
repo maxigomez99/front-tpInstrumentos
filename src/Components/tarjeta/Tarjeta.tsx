@@ -1,17 +1,20 @@
 // Tarjeta.tsx
 import React from 'react';
-import { Card, CardMedia, Typography, Box } from '@mui/material';
+import { Card, CardMedia, Typography, Box, CardActions } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+
 interface TarjetaProps {
     altText: string;
     src: string;
     instrumento: string;
     marca: string;
     modelo: string;
-    precio: number | string; // Update the type to accept both numbers and strings
+    precio: number | string;
     costoEnvio: string;
     cantidadVendida: number;
     descripcion: string;
+    buttonId?: string;
+    children?: React.ReactNode;
 }
 
 const Tarjeta: React.FC<TarjetaProps> = ({
@@ -24,6 +27,8 @@ const Tarjeta: React.FC<TarjetaProps> = ({
     costoEnvio,
     cantidadVendida,
     descripcion,
+    buttonId,
+    children,
 }) => {
     return (
         <Card
@@ -33,8 +38,8 @@ const Tarjeta: React.FC<TarjetaProps> = ({
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
-                width: '600px', // Set a fixed width
-                height: '100px', // Set a fixed height
+                width: '600px',
+                height: '150px',
             }}
         >
             <CardMedia
@@ -42,17 +47,16 @@ const Tarjeta: React.FC<TarjetaProps> = ({
                 width="100"
                 height="100"
                 alt={altText}
-                src={`${src}`}
+                src={src}
                 sx={{
                     borderRadius: '6px',
                     width: { xs: '100%', sm: 100 },
                 }}
             />
-            <Box sx={{ ml: 2, margin: '50px' }}>
+            <Box sx={{ ml: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                     {instrumento}
                 </Typography>
-
                 <Typography variant="body1">
                     Precio: {precio}
                 </Typography>
@@ -69,7 +73,14 @@ const Tarjeta: React.FC<TarjetaProps> = ({
                 <Typography variant="body1">
                     Cantidad vendida: {cantidadVendida}
                 </Typography>
-
+                <CardActions>
+                    {React.Children.map(children, child => {
+                        if (React.isValidElement(child) && buttonId) {
+                            return React.cloneElement(child, { id: buttonId } as React.HTMLAttributes<HTMLElement>);
+                        }
+                        return child;
+                    })}
+                </CardActions>
             </Box>
         </Card>
     );
