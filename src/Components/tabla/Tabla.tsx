@@ -110,7 +110,7 @@ const App: React.FC = () => {
       title: 'Imagen',
       dataIndex: 'imagen',
       key: 'imagen',
-      render: (text: string) => <img src={"http://localhost:8080/img/" + text} alt={text} style={{ width: '50px', height: '50px' }} />
+      render: (text: string) => <img src={"http://localhost:8080/images/" + text} alt={text} style={{ width: '50px', height: '50px' }} />
     },
     {
       title: 'Precio',

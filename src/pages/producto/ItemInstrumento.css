@@ -1,0 +1,88 @@
+.tarjeta {
+    width: 18rem;
+    background-color: aliceblue;
+    padding: 0px;
+    height: 450px;
+  }
+  
+  .altura-cuerpo {
+    min-height: 300px;
+    max-height: 300px;
+  }
+  
+  .img-altura {
+    max-width: 100%; /* Limita la anchura al 100% del contenedor */
+    max-height: 500px; /* Limita la altura a 500px, ajusta este valor según tus necesidades */
+    object-fit: contain; /* Asegura que la imagen se ajuste dentro de su contenedor sin deformarse */
+    /* tus otros estilos aquí */
+  }
+  
+  .btn-mercado-libre {
+    background-color: #ffffff; /* Color de fondo blanco */
+    color: #3483fa; /* Color de texto azul */
+    border: 2px solid #3483fa; /* Borde azul */
+    padding: 10px 20px; /* Espaciado interno */
+    text-align: center; /* Alineación del texto */
+    text-decoration: none; /* Sin decoración de texto */
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer; /* Cursor de mano al pasar el mouse */
+    transition-duration: 0.4s; /* Duración de la transición */
+  }
+  
+  .btn-mercado-libre:hover {
+    background-color: #3483fa; /* Color de fondo azul al pasar el mouse */
+    color: #ffffff; /* Color de texto blanco al pasar el mouse */
+  }
+  
+  .instrumento-title {
+    font-size: 50px; /* Ajusta el tamaño del texto según tus necesidades */
+  }
+  
+  .precio-text {
+    font-size: 60px; /* Ajusta el tamaño del texto según tus necesidades */
+    font-weight: 50; /* Hace el texto más fino */
+  }
+  
+  .marca-modelo > .card-text {
+    margin-bottom: 0; /* Elimina el espacio debajo de los párrafos */
+    font-size: 18px; /* Ajusta el tamaño del texto según tus necesidades */
+  }
+  
+  .costo-envio {
+    margin-top: 3em;
+    font-size: 16px;
+    font-weight: 320; /* Añade espacio antes del costo de envío */
+  }
+  .mi-clase-personalizada {
+    box-sizing: border-box;
+    padding-right: calc(85vw - 50vw);
+    width: 100%; /* Ajusta este valor a la cantidad de padding que necesites */
+    direction: ltr;
+  }
+  .mi-contenido {
+    width: 78vw;
+    direction: ltr;
+  }
+  
+  .buttonSinStock {
+    background-color: gainsboro;
+  }
+  .buttonSinStock:hover {
+    background-color: red;
+  }
+  
+  .espacio {
+    padding: 5px;
+  }
+  
+  .iconoMasMenos {
+    cursor: pointer;
+    font-size: 40px;
+    font-weight: bold;
+    margin-left: 10px;
+    margin-right: 10px;
+    color: lightseagreen;
+  }
+  

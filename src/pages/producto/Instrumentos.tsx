@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { getInstrumentoJSONFetch, Instrumento } from '../service/InstrumentoService';
-import Tarjeta from '../Components/tarjeta/Tarjeta';
+import { getInstrumentoJSONFetch } from '../../service/InstrumentoService';
+import Tarjeta from '../../Components/tarjeta/Tarjeta';
 import { Box, Grid, Button } from '@mui/material';
-import { Modal } from 'antd';
-import ModalDetalle from '../Components/modal/ModalDetalle';
+import ModalDetalle from '../../Components/modal/ModalDetalle';
+import Instrumento from '../../entidades/Instrumento';
+
 const Instrumentos = () => {
     const [instrumentos, setInstrumentos] = useState<Instrumento[]>([]);
     const [loading, setLoading] = useState(true);
@@ -78,12 +79,14 @@ const Instrumentos = () => {
                     </Grid>
                 ))}
             </Grid>
-            <ModalDetalle
-                visible={visible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-                instrumento={currentInstrument}
-            />
+            {currentInstrument && (
+                <ModalDetalle
+                    visible={visible}
+                    onOk={handleOk}
+                    onCancel={handleCancel}
+                    instrumento={currentInstrument}
+                />
+            )}
         </>
     );
 };

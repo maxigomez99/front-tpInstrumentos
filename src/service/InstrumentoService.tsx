@@ -55,8 +55,9 @@ export async function saveInstrumento(
       precio: instrumento?.precio,
       costoEnvio: instrumento?.costoEnvio, // Use the correct field name here
       cantidadVendida: instrumento?.cantidadVendida,
-      categoria: instrumento?.categoria?.id 
-      
+      categoria: {
+        id: instrumento?.categoria,
+      },
     })
   );
 
