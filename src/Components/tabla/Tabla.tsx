@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Space, Table, Select, message } from 'antd';
+import { Space, Table, Select, message, Button, Switch } from 'antd';
 import type { TableProps } from 'antd';
-import { getInstrumentoJSONFetch } from '../../service/InstrumentoService';
+import {  traerTodosInstrumentos } from '../../service/InstrumentoService';
 import { getCategoriasFetch } from '../../service/CategoriaService';
 import ModalAgregarInstrumento from '../modal/ModalAgregarInstrumento';
 import Instrumento from '../../entidades/Instrumento';
-
+import ModalExcel from '../modal/ModalExcel';
+import { descargarExcel } from '../../service/ExcelService'; // Make sure to import cambiarEstadoInstrumento
+import { DownloadOutlined } from '@ant-design/icons';
+import {cambiarEstadoInstrumento}  from '../../service/InstrumentoService';
+import Instrumentos from "../../entidades/Instrumento";
 const { Option } = Select;
 
 type ColumnsType<T extends object> = TableProps<T>['columns'];
@@ -16,6 +20,7 @@ interface Categoria {
 }
 
 interface DataType {
+  eliminado: boolean;
   key: string;
   instrumento: string;
   imagen: string;
@@ -28,6 +33,10 @@ interface DataType {
   descripcion: string;
 }
 
+interface Props {
+  datos: Instrumentos[];
+}
+
 const App: React.FC = () => {
   const [data, setData] = useState<DataType[]>([]);
   const [filteredData, setFilteredData] = useState<DataType[]>([]);
@@ -35,11 +44,14 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [visible, setVisible] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<DataType | null>(null);
-
+  const [fechaInicio, setFechaInicio] = useState<string>("");
+  const [fechaFin, setFechaFin] = useState<string>("");
+  const [showModalExcel, setShowModalExcel] = useState(false);
+  const [instrumentos, setInstrumentos] = useState<Instrumentos[]>([]);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result: Instrumento[] = await getInstrumentoJSONFetch();
+        const result: Instrumento[] = await traerTodosInstrumentos();
         const formattedData: DataType[] = result.map((item) => ({
           key: item.id.toString(),
           instrumento: item.instrumento,
@@ -51,6 +63,7 @@ const App: React.FC = () => {
           cantidadVendida: item.cantidadVendida,
           categoria: item.categoria?.id ? item.categoria : 'Sin categoria',
           descripcion: item.descripcion,
+          eliminado: item.eliminado || false
         }));
         setData(formattedData);
         setFilteredData(formattedData);
@@ -99,6 +112,54 @@ const App: React.FC = () => {
       setFilteredData(filtered);
     }
   };
+
+  const handleOpenModalExcel = () => {
+    setShowModalExcel(true);
+  };
+
+  const handleCloseModalExcel = () => {
+    setShowModalExcel(false);
+  };
+
+  const handleDescargarExcel = async () => {
+    try {
+      if (!fechaInicio || !fechaFin) {
+        console.error("Las fechas de inicio y fin deben estar establecidas");
+        return;
+      }
+
+      await descargarExcel(fechaInicio, fechaFin);
+      handleCloseModalExcel();
+    } catch (error) {
+      console.error("Error al descargar Excel: ", error);
+    }
+  };
+
+  const deleteInstrumento = async (id: number) => {
+    try {
+      await cambiarEstadoInstrumento(id);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error al cambiar el estado del instrumento:", error);
+      message.error('Failed to change instrument state');
+    }
+  };
+
+  const handleSwitchChange = async (id: number) => {
+    const instrumento = instrumentos.find((inst) => inst.id === id);
+    if (!instrumento) return;
+
+    const nuevoEstado = !instrumento.eliminado;
+
+    await cambiarEstadoInstrumento(id);
+
+    setInstrumentos(
+      instrumentos.map((inst) =>
+        inst.id === id ? { ...inst, eliminado: nuevoEstado } : inst
+      )
+    );
+  };
+
 
   const columns: ColumnsType<DataType> = [
     {
@@ -149,12 +210,25 @@ const App: React.FC = () => {
       key: 'descripcion',
     },
     {
-      title: 'Action',
+      title: 'Editar',
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
           <a onClick={() => handleEdit(record)} style={{ cursor: 'pointer' }}>Editar</a>
-          <a style={{ cursor: 'pointer' }}>Delete</a>
+        </Space>
+      ),
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Space size="middle">
+           <Switch
+            checked={record.eliminado}
+            onChange={() => handleSwitchChange(Number(record.key))}
+            style={{ backgroundColor: record.eliminado ? 'red' : '' }}
+          />
+
         </Space>
       ),
     },
@@ -173,6 +247,14 @@ const App: React.FC = () => {
           <Option key={category.id} value={category.denominacion}>{category.denominacion}</Option>
         ))}
       </Select>
+      <Button
+        type="primary"
+        icon={<DownloadOutlined />}
+        onClick={handleOpenModalExcel}
+        style={{ marginBottom: 30, float: 'right',marginTop:'10px', backgroundColor: 'green', borderColor: 'green' }} // Add backgroundColor and borderColor to change the color to green
+      >
+        Descargar Excel
+      </Button>
       <Table
         columns={columns}
         pagination={{
@@ -185,6 +267,15 @@ const App: React.FC = () => {
         visible={visible}
         onCancel={handleCancel}
         instrumento={selectedInstrument}
+      />
+      <ModalExcel
+        visible={showModalExcel} // Add this line to control visibility
+        fechaInicio={fechaInicio}
+        fechaFin={fechaFin}
+        setFechaInicio={setFechaInicio}
+        setFechaFin={setFechaFin}
+        onClose={handleCloseModalExcel}
+        onDescargar={handleDescargarExcel}
       />
     </div>
   );

@@ -48,7 +48,8 @@ function ItemInstrumento(arg: InstrumentoParams) {
     };
 
     const handleOk = () => {
-        setVisible(false);
+        setCurrentInstrument(arg.instrumentoObject);
+        setVisible(true);
     };
 
     const handleCancel = () => {

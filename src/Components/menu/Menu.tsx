@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppstoreOutlined, HomeOutlined, ShopOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, BarChartOutlined, HomeOutlined, ShopOutlined } from '@ant-design/icons';
 import { Menu } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import Usuario from "../../entidades/Usuario";
@@ -42,7 +42,7 @@ const items: MenuItem[] = [
     {
         label: 'Gráficos',
         key: 'charts',
-        icon: <AppstoreOutlined />,
+        icon: <BarChartOutlined />,
         to: '/graficos',
         role: Roles.ADMIN,
     },

@@ -30,7 +30,19 @@ export async function getInstrumentoJSONFetch(): Promise<Instrumento[]> {
   }
 }
 
+export async function traerTodosInstrumentos() {
+  const urlServer = "http://localhost:8080/Instrumento/traer-todo";
 
+  const response = await fetch(urlServer, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+    mode: "cors",
+  });
+  return await response.json();
+}
 export async function saveInstrumento(
   instrumento?: Instrumento,
   imagen?: File
@@ -56,7 +68,7 @@ export async function saveInstrumento(
       costoEnvio: instrumento?.costoEnvio, // Use the correct field name here
       cantidadVendida: instrumento?.cantidadVendida,
       categoria: {
-        id: instrumento?.categoria,
+        id: instrumento?.categoria?.id,
       },
     })
   );
@@ -75,4 +87,45 @@ export async function saveInstrumento(
   }
 
   return response.json();
+}
+
+
+
+
+export async function getInstrumentoXIdFetch(id: number) {
+  const urlServer = "http://localhost:8080/Instrumento/traer/" + id;
+  const response = await fetch(urlServer, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+    mode: "cors",
+  });
+  return (await response.json()) as Instrumento;
+}
+
+export async function cambiarEstadoInstrumento(id: number) {
+  const urlServer = "http://localhost:8080/Instrumento/estado/" + id;
+  await fetch(urlServer, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+    mode: "cors",
+  });
+}
+
+export async function getInstrumentoXBusqueda(termino: String) {
+  let urlServer = "http://localhost:8080/Instrumento/buscar/" + termino;
+  let response = await fetch(urlServer, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
+    mode: "cors",
+  });
+  return await response.json();
 }
