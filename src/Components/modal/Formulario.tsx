@@ -133,7 +133,7 @@ function ModalFormulario({
       return;
     }
 
-    navigate("/grilla");
+    navigate("/instrumentos");
     handleOk(); // Cierra el modal después de guardar
   };
 

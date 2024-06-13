@@ -1,116 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import { Space, Table, Select, message, Button, Switch } from 'antd';
-import type { TableProps } from 'antd';
-import {  traerTodosInstrumentos } from '../../service/InstrumentoService';
-import { getCategoriasFetch } from '../../service/CategoriaService';
-import ModalAgregarInstrumento from '../modal/ModalAgregarInstrumento';
-import Instrumento from '../../entidades/Instrumento';
-import ModalExcel from '../modal/ModalExcel';
-import { descargarExcel } from '../../service/ExcelService'; // Make sure to import cambiarEstadoInstrumento
-import { DownloadOutlined } from '@ant-design/icons';
-import {cambiarEstadoInstrumento}  from '../../service/InstrumentoService';
-import Instrumentos from "../../entidades/Instrumento";
-const { Option } = Select;
+import { useEffect, useState } from "react";
+import Instrumento from "../../entidades/Instrumento";
+import Usuario from "../../entidades/Usuario";
+import { Roles } from "../../entidades/Roles";
+import ModalFormulario from "../modal/Formulario";
+import { descargarExcel } from "../../service/ExcelService";
+import ModalExcel from "../modal/ModalExcel";
+import { Switch, Button, Table, Select, message } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import Categoria from "../../entidades/Categoria";
+import { cambiarEstadoInstrumento, traerTodosInstrumentos } from "../../service/InstrumentoService";
+import { getCategoriasFetch } from "../../service/CategoriaService";
 
-type ColumnsType<T extends object> = TableProps<T>['columns'];
-
-interface Categoria {
-  id: number;
-  denominacion: string;
-}
-
-interface DataType {
-  eliminado: boolean;
-  key: string;
-  instrumento: string;
-  imagen: string;
-  precio: number;
-  envio: string;
-  marca: string;
-  modelo: string;
-  cantidadVendida: number;
-  categoria: Categoria | string;
-  descripcion: string;
-}
-
-interface Props {
-  datos: Instrumentos[];
-}
-
-const App: React.FC = () => {
-  const [data, setData] = useState<DataType[]>([]);
-  const [filteredData, setFilteredData] = useState<DataType[]>([]);
-  const [categories, setCategories] = useState<Categoria[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [visible, setVisible] = useState(false);
-  const [selectedInstrument, setSelectedInstrument] = useState<DataType | null>(null);
+function GrillaInstrumento() {
   const [fechaInicio, setFechaInicio] = useState<string>("");
   const [fechaFin, setFechaFin] = useState<string>("");
   const [showModalExcel, setShowModalExcel] = useState(false);
-  const [instrumentos, setInstrumentos] = useState<Instrumentos[]>([]);
+  const [instrumentos, setInstrumentos] = useState<Instrumento[]>([]);
+  const [jsonUsuario] = useState<any>(localStorage.getItem("usuario"));
+  const usuarioLogueado: Usuario = JSON.parse(jsonUsuario) as Usuario;
+  const [showModal, setShowModal] = useState(false);
+  const [selectedInstrumento, setSelectedInstrumento] =
+    useState<Instrumento | null>(null);
+  const [categories, setCategories] = useState<Categoria[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  const getInstrumentos = async () => {
+    const datos: Instrumento[] = await traerTodosInstrumentos();
+    setInstrumentos(datos);
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const categoriesData: Categoria[] = await getCategoriasFetch();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      message.error("Failed to fetch categories");
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result: Instrumento[] = await traerTodosInstrumentos();
-        const formattedData: DataType[] = result.map((item) => ({
-          key: item.id.toString(),
-          instrumento: item.instrumento,
-          imagen: item.imagen,
-          precio: item.precio,
-          envio: item.costoEnvio === 'G' ? 'Gratis' : `$${item.costoEnvio}`,
-          marca: item.marca,
-          modelo: item.modelo,
-          cantidadVendida: item.cantidadVendida,
-          categoria: item.categoria?.id ? item.categoria : 'Sin categoria',
-          descripcion: item.descripcion,
-          eliminado: item.eliminado || false
-        }));
-        setData(formattedData);
-        setFilteredData(formattedData);
-      } catch (error) {
-        console.error('Failed to fetch instruments:', error);
-        message.error('Failed to fetch instruments');
-      }
-    };
-
-    const fetchCategories = async () => {
-      try {
-        const categoriesData: Categoria[] = await getCategoriasFetch();
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        message.error('Failed to fetch categories');
-      }
-    };
-
-    fetchData();
+    getInstrumentos();
     fetchCategories();
   }, []);
 
-  const handleEdit = (record: DataType) => {
-    console.log('Editing record:', record);
-    setSelectedInstrument(record);
-    setVisible(true);
+  const deleteInstrumento = async (id: number) => {
+    await cambiarEstadoInstrumento(id).then(() => window.location.reload());
   };
 
-  const handleCancel = () => {
-    setVisible(false);
-    setSelectedInstrument(null);
+  const toggleInstrumento = async (id: number) => {
+    const instrumento = instrumentos.find(
+      (instrumento) => instrumento.id === id
+    );
+    if (!instrumento) return;
+
+    const nuevoEstado = !instrumento.eliminado;
+    await deleteInstrumento(id);
+    setInstrumentos(
+      instrumentos.map((instrumento) =>
+        instrumento.id === id
+          ? { ...instrumento, eliminado: nuevoEstado }
+          : instrumento
+      )
+    );
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value);
-    if (value === '') {
-      setFilteredData(data);
-    } else {
-      const filtered = data.filter(item => {
-        if (typeof item.categoria === 'object' && item.categoria !== null) {
-          return item.categoria.denominacion === value;
-        }
-        return false;
-      });
-      setFilteredData(filtered);
-    }
+  const handleOpenModal = (instrumento?: Instrumento) => {
+    setSelectedInstrumento(instrumento || null);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = async () => {
+    setSelectedInstrumento(null);
+    setShowModal(false);
+    await getInstrumentos(); // Recarga los instrumentos cuando se cierra el modal
   };
 
   const handleOpenModalExcel = () => {
@@ -123,6 +86,7 @@ const App: React.FC = () => {
 
   const handleDescargarExcel = async () => {
     try {
+      // Asegúrate de que las fechas de inicio y fin están establecidas
       if (!fechaInicio || !fechaFin) {
         console.error("Las fechas de inicio y fin deben estar establecidas");
         return;
@@ -135,150 +99,143 @@ const App: React.FC = () => {
     }
   };
 
-  const deleteInstrumento = async (id: number) => {
-    try {
-      await cambiarEstadoInstrumento(id);
-      window.location.reload();
-    } catch (error) {
-      console.error("Error al cambiar el estado del instrumento:", error);
-      message.error('Failed to change instrument state');
-    }
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
   };
 
-  const handleSwitchChange = async (id: number) => {
-    const instrumento = instrumentos.find((inst) => inst.id === id);
-    if (!instrumento) return;
+  const filteredInstrumentos = selectedCategory
+    ? instrumentos.filter(
+      (instrumento) =>
+        instrumento.categoria?.denominacion === selectedCategory
+    )
+    : instrumentos;
 
-    const nuevoEstado = !instrumento.eliminado;
-
-    await cambiarEstadoInstrumento(id);
-
-    setInstrumentos(
-      instrumentos.map((inst) =>
-        inst.id === id ? { ...inst, eliminado: nuevoEstado } : inst
-      )
-    );
-  };
-
-
-  const columns: ColumnsType<DataType> = [
+  // Definición de las columnas para la tabla
+  const columns = [
     {
-      title: 'Instrumento',
-      dataIndex: 'instrumento',
-      key: 'instrumento',
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
     },
     {
       title: 'Imagen',
       dataIndex: 'imagen',
       key: 'imagen',
-      render: (text: string) => <img src={"http://localhost:8080/images/" + text} alt={text} style={{ width: '50px', height: '50px' }} />
-    },
-    {
-      title: 'Precio',
-      dataIndex: 'precio',
-      key: 'precio',
-    },
-    {
-      title: 'Envio',
-      dataIndex: 'envio',
-      key: 'envio',
-    },
-    {
-      title: 'Marca',
-      dataIndex: 'marca',
-      key: 'marca',
-    },
-    {
-      title: 'Modelo',
-      dataIndex: 'modelo',
-      key: 'modelo',
-    },
-    {
-      title: 'Cantidad Vendida',
-      dataIndex: 'cantidadVendida',
-      key: 'cantidadVendida',
-    },
-    {
-      title: 'Categoria',
-      dataIndex: ['categoria', 'denominacion'],
-      key: 'categoria',
-      render: (denominacion: string) => denominacion,
-    },
-    {
-      title: 'Descripcion',
-      dataIndex: 'descripcion',
-      key: 'descripcion',
-    },
-    {
-      title: 'Editar',
-      key: 'action',
-      render: (_, record) => (
-        <Space size="middle">
-          <a onClick={() => handleEdit(record)} style={{ cursor: 'pointer' }}>Editar</a>
-        </Space>
+      render: (imagen: string) => (
+        <img src={'http://localhost:8080/images/'+imagen} alt="Instrumento" style={{ width: '50px', height: '50px' }} />
       ),
     },
     {
-      title: 'Action',
-      key: 'action',
-      render: (_, record) => (
-        <Space size="middle">
-           <Switch
+      title: "Instrumento",
+      dataIndex: "instrumento",
+      key: "instrumento",
+    },
+    {
+      title: "Categoría",
+      dataIndex: "categoria",
+      key: "categoria",
+      render: (categoria: any) => categoria?.denominacion,
+    },
+    {
+      title: "Cantidad Vendida",
+      dataIndex: "cantidadVendida",
+      key: "cantidadVendida",
+    },
+    {
+      title: "Precio",
+      dataIndex: "precio",
+      key: "precio",
+    },
+    {
+      title: "Modificar",
+      key: "modificar",
+      render: (text: any, record: Instrumento) => (
+        <Button type="primary" size="small" onClick={() => handleOpenModal(record)}>
+          Modificar
+        </Button>
+      ),
+    },
+    {
+      title: "Eliminar",
+      key: "eliminar",
+      render: (text: any, record: Instrumento) =>
+        usuarioLogueado.rol === Roles.ADMIN ? (
+          <Switch
             checked={record.eliminado}
-            onChange={() => handleSwitchChange(Number(record.key))}
-            style={{ backgroundColor: record.eliminado ? 'red' : '' }}
+            onChange={() => toggleInstrumento(record.id)}
           />
-
-        </Space>
-      ),
+        ) : null,
     },
   ];
 
   return (
-    <div>
-      <Select
-        placeholder="Seleccione una categoría"
-        style={{ width: 200, marginBottom: 20 }}
-        onChange={handleCategoryChange}
-        value={selectedCategory}
-      >
-        <Option value="">Todas</Option>
-        {categories.map(category => (
-          <Option key={category.id} value={category.denominacion}>{category.denominacion}</Option>
-        ))}
-      </Select>
-      <Button
-        type="primary"
-        icon={<DownloadOutlined />}
-        onClick={handleOpenModalExcel}
-        style={{ marginBottom: 30, float: 'right',marginTop:'10px', backgroundColor: 'green', borderColor: 'green' }} // Add backgroundColor and borderColor to change the color to green
-      >
-        Descargar Excel
-      </Button>
-      <Table
-        columns={columns}
-        pagination={{
-          position: ['bottomCenter'],
-          pageSize: 6
-        }}
-        dataSource={filteredData}
-      />
-      <ModalAgregarInstrumento
-        visible={visible}
-        onCancel={handleCancel}
-        instrumento={selectedInstrument}
-      />
-      <ModalExcel
-        visible={showModalExcel} // Add this line to control visibility
-        fechaInicio={fechaInicio}
-        fechaFin={fechaFin}
-        setFechaInicio={setFechaInicio}
-        setFechaFin={setFechaFin}
-        onClose={handleCloseModalExcel}
-        onDescargar={handleDescargarExcel}
-      />
-    </div>
-  );
-};
+    <>
+      <div className="container-fluid text-center">
+        <div className="container-fluid text-center">
+          <br />
+          <div className="d-flex justify-content-between mb-3">
+            <Select
+              placeholder="Seleccione una categoría"
+              style={{ width: 200 }}
+              onChange={handleCategoryChange}
+              value={selectedCategory}
+            >
+              <Select.Option value="">Todas</Select.Option>
+              {categories.map((category) => (
+                <Select.Option
+                  key={category.id}
+                  value={category.denominacion}
+                >
+                  {category.denominacion}
+                </Select.Option>
+              ))}
+            </Select>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <Button
+                className="btn-primary"
+                onClick={() => handleOpenModal()}
+              >
+                Agregar Instrumento
+              </Button>
+              <Button
+                type="primary"
+                icon={<DownloadOutlined />}
+                onClick={handleOpenModalExcel}
+                style={{ backgroundColor: 'green', borderColor: 'green' }}
+              >
+                Descargar Excel
+              </Button>
+            </div>
+          </div>
 
-export default App;
+          <Table
+            dataSource={filteredInstrumentos}
+            columns={columns}
+            rowClassName={(record) =>
+              record.eliminado ? "eliminado-row" : ""
+            }
+          />
+        </div>
+        {showModalExcel && (
+          <ModalExcel
+            fechaInicio={fechaInicio}
+            fechaFin={fechaFin}
+            setFechaInicio={setFechaInicio}
+            setFechaFin={setFechaFin}
+            onClose={handleCloseModalExcel}
+            onDescargar={handleDescargarExcel}
+            visible={showModalExcel} // Asegúrate de pasar `showModalExcel` como `visible`
+          />
+        )}
+      </div>
+      {showModal && (
+        <ModalFormulario
+          initialInstrumento={selectedInstrumento}
+          onClose={handleCloseModal}
+        />
+      )}
+    </>
+  );
+}
+
+export default GrillaInstrumento;

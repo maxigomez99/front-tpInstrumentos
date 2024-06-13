@@ -56,6 +56,7 @@ export async function saveInstrumento(
   }
 
   const formData = new FormData();
+  // Solo agregamos las propiedades necesarias del instrumento al FormData
   formData.append(
     "instrumento",
     JSON.stringify({
@@ -65,11 +66,9 @@ export async function saveInstrumento(
       modelo: instrumento?.modelo,
       descripcion: instrumento?.descripcion,
       precio: instrumento?.precio,
-      costoEnvio: instrumento?.costoEnvio, // Use the correct field name here
+      costoEnvio: instrumento?.costoEnvio,
       cantidadVendida: instrumento?.cantidadVendida,
-      categoria: {
-        id: instrumento?.categoria?.id,
-      },
+      categoria: instrumento?.categoria,
     })
   );
 
@@ -88,7 +87,6 @@ export async function saveInstrumento(
 
   return response.json();
 }
-
 
 
 
