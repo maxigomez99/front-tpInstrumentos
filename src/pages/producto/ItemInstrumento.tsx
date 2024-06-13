@@ -66,7 +66,7 @@ function ItemInstrumento(arg: InstrumentoParams) {
 
     return (
         <>
-            <Card style={{ width: 500, marginTop: 16 }}>
+            <Card style={{ width: 500, marginTop: 16, marginLeft: 'auto', marginRight: 'auto' }}>
                 <Row>
                     <Col span={8}>
                         <img

@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import Instrumento from "../../entidades/Instrumento";
 import { useNavigate } from "react-router-dom";
 import {
- 
   getInstrumentoXIdFetch,
   saveInstrumento,
 } from "../../service/InstrumentoService";
 import Categoria from "../../entidades/Categoria";
-import  {getCategoriaDataBaseJson}  from "../../service/CategoriaService";
+import { getCategoriaDataBaseJson } from "../../service/CategoriaService";
 import { Modal } from "antd";
 
 interface ModalFormularioProps {
@@ -168,10 +167,13 @@ function ModalFormulario({
     getCategorias();
     showModal();
   }, []);
+
+  const isCreating = initialInstrumento === null;
+
   return (
     <>
       <Modal
-        title="Formulario"
+        title={isCreating ? "Agregar Instrumento" : "Editar Instrumento"}
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -180,7 +182,7 @@ function ModalFormulario({
       >
         <div className="container-fluid">
           <div className="container">
-            <h1 className="text-left">Formulario</h1>
+       
             <div className="row">
               <div className="col-lg-6">
                 {/* Aquí van los campos de la primera columna */}

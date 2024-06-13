@@ -1,0 +1,14 @@
+/* En tu archivo CSS para el componente Menu */
+.menu-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Asegura que el menú se muestre por encima de otros elementos */
+    background-color: #fff; /* O el color de fondo de tu menú */
+  }
+  
+  /* Ajustar el padding del cuerpo de la página */
+  body {
+    padding-top: 60px; /* Ajusta este valor al alto de tu menú */
+  }

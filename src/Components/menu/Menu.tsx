@@ -4,6 +4,7 @@ import { Menu } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import Usuario from "../../entidades/Usuario";
 import { Roles } from "../../entidades/Roles";
+import './menu.css';
 
 type MenuItem = {
     label: string;
@@ -65,6 +66,7 @@ const App: React.FC = () => {
     };
 
     return (
+        <div className="menu-container">
         <Menu mode="horizontal">
             {items.map((item) => (
                 (!item.role || item.role === usuarioLogueado?.rol) && (
@@ -80,6 +82,7 @@ const App: React.FC = () => {
                 Cerrar Sesión
             </Menu.Item>
         </Menu>
+        </div>
     );
 };
 
